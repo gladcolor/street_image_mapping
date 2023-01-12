@@ -292,3 +292,23 @@ class Bbox_mapping:
     # def map_width(DOM_img, heading_deg: float):
     #
     #     return
+
+class Image_segmentation(object):
+    def __init__(self, seg_path, ):
+
+
+        self.seg_path = seg_path
+
+class Image_landcover(object):
+    def __init__(self, landcover_path, ):
+
+        '''
+        # How to measure road width?
+        1. Generate bininary image by target classes.
+        2.
+        '''
+
+        self.landcover_path = landcover_path
+        landcover_pil = Image.open(self.landcover_path)
+        landcover_np = np.array(landcover_pil)
+        self.landcover_h, self.landcover_w = landcover_np.shape

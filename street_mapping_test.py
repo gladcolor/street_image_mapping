@@ -39,10 +39,10 @@ class Street_mapping_test(unittest.TestCase):
     # def test_Bbox_mapping_get_offset(self):
     #     bbox_mapping1 = sm.Bbox_mapping(bar_length=0.9, top_row, right_col, bottom_row, left_col, fov_h_deg, img_h, img_w)
     #
-    def test_helper_yolov5_detection_file_to_bbox(self):
-        detection_file = r'./test_images/Drgf5QkdTdhxZq7axLxNMw_0.0_0.0_0_134.00_F10.txt'
-        detection_bboxes = helper.yolov5_detection_file_to_bbox(detection_file)
-        print(detection_file, detection_bboxes)
+    # def test_helper_yolov5_detection_file_to_bbox(self):
+    #     detection_file = r'./test_images/Drgf5QkdTdhxZq7axLxNMw_0.0_0.0_0_134.00_F10.txt'
+    #     detection_bboxes = helper.yolov5_detection_file_to_bbox(detection_file)
+    #     print(detection_file, detection_bboxes)
 
     def test_Image_detection(self):
         detection_file = r'./test_images/_gCN6R-X-3U6YqKZcuo1dA_0.0_0.0_0_133.41_F20.txt'  # error: 17.2 - 15.5 = 1.8 m
@@ -60,6 +60,27 @@ class Street_mapping_test(unittest.TestCase):
         self.assertTrue(error < 2)
 
 
+    def test_Image_segmentation(self):
+        segmentation_file = r'./test_images/_gCN6R-X-3U6YqKZcuo1dA_0.0_0.0_0_133.41_F20.txt'
+
+        img_detection = sm.Image_detection(detection_file=detection_file)
+
+        img_detection.compute_distance(bar_length_dict={0:0.9}, fov_h_deg=20)
+        img_detection.compute_offset(pano_yaw_deg=133.40961)
+        img_detection.save()
+        ground_true = 17.2  # meter
+        error = abs(ground_true - img_detection.detection_df.iloc[0]['distance'])
+        # print(img_detection.detection_df)
+
+
+        self.assertTrue(error < 2)
+
+    def test_Image_landcover(self):
+        seg_file = r'./test_images/S_ZmoNLdzo0FApj_jGiFJg_DOM_0.05.tif'
+
+        img_landcover = sm.Image_landcover(landcover_path=seg_file)
+        self.assertEqual(img_landcover.landcover_h, 800)
+        self.assertEqual(img_landcover.landcover_w, 800)
 
 if __name__ == '__main__':
     unittest.main()
