@@ -79,6 +79,12 @@ class Street_mapping_test(unittest.TestCase):
         seg_file = r'./test_images/S_ZmoNLdzo0FApj_jGiFJg_DOM_0.05.tif'
 
         img_landcover = sm.Image_landcover(landcover_path=seg_file)
+
+        # helper.img_smooth(img_cv=img_landcover.landcover_np)
+
+        # plt.imshow(img_landcover.landcover_pil)
+        img_landcover.scan_width(pano_bearing_deg=225, target_ids=[10, 16, 24, 30, 35])
+
         self.assertEqual(img_landcover.landcover_h, 800)
         self.assertEqual(img_landcover.landcover_w, 800)
 
