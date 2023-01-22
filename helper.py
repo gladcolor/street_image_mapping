@@ -18,7 +18,7 @@ from sklearn.metrics import r2_score
 import json
 
 import geopandas as gpd
-
+from shapely.geometry import Point, Polygon, mapping, LineString, MultiLineString
 import shapely
 import cv2
 
@@ -113,6 +113,54 @@ def cv_img_rotate_bound(image, angle, flags=cv2.INTER_NEAREST):
     # perform the actual rotation and return the image
     return cv2.warpAffine(image, M, (nW, nH), flags=flags)
 
+def line_ends_touched(x1, y1, x2, y2, mask_np, width=13, height=1, threshold=6, mode='and'):  # mode: ["and", "or"]
+    is_touched1 = check_touched(x1, y1, mask_np, width=width, height=height, threshold=threshold)
+    is_touched2 = check_touched(x2, y2, mask_np, width=width, height=height, threshold=threshold)
+
+    is_tounched = -1
+    if mode == "and":
+        is_tounched = (is_touched1 and is_touched2)
+    if mode == 'or':
+        is_tounched = (is_touched1 or is_touched2)
+
+    return is_tounched
+
+def fill_image_edge(img_np, fill_value, width=3):
+    assert len(img_np.shape) == 2, "Make sure the input image is single layer. Error in fill_image_edge()."
+    img_np[:, 0:width] = fill_value
+    img_np[:, -width:] = fill_value
+    img_np[0:width, :] = fill_value
+    img_np[-width:, :] = fill_value
+
+def check_touched(col, row, mask_np, width=6, height=1, threshold=6):
+    '''
+    check whethe a sidewalk touchs cars. car: 58, other: 255
+    :param col:
+    :param row:
+    :param img_np:
+    :param threshold:
+    :return:
+    '''
+    mask_w, mask_h = mask_np.shape
+    col_start = max(0, int(col - width/1))
+    col_end = min(mask_w - 1, int(col + width/1))
+
+    row_start = max(0, int(row - height/1))
+    row_end = min(mask_h - 1, int(row + height/1))
+
+    samples = mask_np[row_start:row_end, col_start:col_end]
+
+    is_touched = samples.sum() > threshold
+
+    # close to the edge:
+    edge_threshold = 3 # pixel
+    if col < edge_threshold or col > (mask_w - edge_threshold - 1):
+        is_touched = True
+
+    if row < edge_threshold or row > (mask_h - edge_threshold - 1):
+        is_touched = True
+
+    return is_touched
 
 def shape_add_XY():
     shp_file = r'E:\Research\street_image_mapping\Maryland_panoramas\jsons.shp'
@@ -288,6 +336,114 @@ def rle_encoding(x, keep_nearest=False):
         run_lengths, run_rows = keep_nearest_measurements(run_lengths, run_rows, center_col)
 
     return run_lengths, run_rows   # run_lengths: (col number, length), run_rows: row number
+
+def get_cover_ratio(col, row, mask_np, width, height):
+    '''
+
+    :param col:
+    :param row:
+    :param mask_np:
+    :param width: window width
+    :param height: window height
+    :return:
+    '''
+
+    try:
+        cover_ratio = -1
+        if width * height == 0:
+            return cover_ratio
+        mask_w, mask_h = mask_np.shape
+        col_start = max(0, int(col - width/2))
+        col_end = min(mask_w - 1, int(col + width/2))
+
+        row_start = max(0, int(row - height/2))
+        row_end = min(mask_h - 1, int(row + height/2))
+
+        samples = mask_np[row_start:row_end, col_start:col_end]
+        # samples = samples / 255
+
+        cover_ratio = samples.sum() / float(width * height)
+
+        #  show image
+        # cv_mask_color = cv2.merge([np.where(mask_np > 0, 255, 0).astype(np.uint8)])
+        # cv_mask_color = cv2.merge([cv_mask_color, cv_mask_color, cv_mask_color])
+        # top_left = (col_start, row_start)
+        # bottom_right = (col_end, row_end)
+        # cv2.rectangle(cv_mask_color, top_left, bottom_right, color=(0, 255, 0), thickness=2)
+        # cv2.imshow(f"cover_ratio: {cover_ratio:.3f}", cv_mask_color)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+        return cover_ratio
+    except Exception as e:
+        print("Error in get_cover_ratio():", e)
+        return cover_ratio
+
+def points_2D_rotated(points, angle_deg):
+    points = np.hstack((points, np.ones((points.shape[0], 1))))
+    angle = math.radians(angle_deg)
+    r_mat = np.array([
+        [np.cos(angle), -np.sin(angle), 0],
+        [np.sin(angle),  np.cos(angle), 0],
+        [0, 0, 1]])
+    results = points.dot(r_mat.T)
+    return results[:, 0:2]
+
+def points_2D_translation(points, tx, ty):
+    points = np.hstack((points, np.ones((points.shape[0], 1))))
+    t_mat = np.array([[1, 0, -tx],
+                      [0, -1, ty],
+                      [0, 0, 1]])
+    results = points.dot(t_mat.T)
+    return results[:, 0:2]
+
+def read_worldfile(file_path):
+    try:
+        f = open(file_path, "r")
+        lines = f.readlines()
+        f.close()
+        lines = [line[:-1] for line in lines]
+        resolution = float(lines[0])
+        upper_left_x = float(lines[4])
+        upper_left_y = float(lines[5])
+        return resolution, upper_left_x, upper_left_y
+    except Exception as e:
+        print("Error in read_worldfile(), return Nones:", e)
+        return None, None, None
+
+def get_line(row):
+    p = Point(row['start_x'], row['start_y'])
+    p1 = Point(row['end_x'], row['end_y'])
+    line = LineString([p1, p])
+    return line
+
+def measurements_to_shapefile(widths_files=[], saved_path=''):
+
+    # for idx, f in enumerate(widths_files):
+    total_cnt = len(widths_files)
+    while len(widths_files) > 0:
+        f = widths_files.pop(0)
+        processed_cnt = total_cnt -len(widths_files)
+        try:
+            if processed_cnt % 1000 == 0:
+                print("Processing: ", processed_cnt, f)
+            df = pd.read_csv(f)
+
+            if len(df) == 0:
+                print("Have no measurements: ", f)
+                continue
+
+            lines = df.apply(get_line, axis=1)
+
+            gdf = gpd.GeoDataFrame(df, geometry=lines)
+            basename = os.path.basename(f).replace(".csv", ".shp")
+            new_name = os.path.join(saved_path, basename)
+            gdf.to_file(new_name)
+        except Exception as e:
+            print("Error in measurements_to_shapefile():", e, f)
+            print(df)
+            # logging.error(str(e), exc_info=True)
+            continue
 
 if __name__ == '__main__':
     # convert_labelme_to_YOLOv5_txt()

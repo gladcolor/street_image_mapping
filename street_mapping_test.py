@@ -1,3 +1,4 @@
+import glob
 import math
 import unittest
 import json
@@ -5,7 +6,9 @@ import json
 import helper
 import street_mapping as sm
 # import rasterio
+import os
 
+import random
 class Street_mapping_test(unittest.TestCase):
     # def test_load_data(self):
     #     sm1 = sm.Street_mapping().map_width(DOM_img=0, heading_deg=0)
@@ -76,17 +79,44 @@ class Street_mapping_test(unittest.TestCase):
         self.assertTrue(error < 2)
 
     def test_Image_landcover(self):
-        seg_file = r'./test_images/S_ZmoNLdzo0FApj_jGiFJg_DOM_0.05.tif'
 
-        img_landcover = sm.Image_landcover(landcover_path=seg_file)
+        seg_dir = r'E:\OneDrive_USC\OneDrive - University of South Carolina\Research\sidewalk_wheelchair\DC_DOMs'
+        seg_files = glob.glob(os.path.join(seg_dir, '*_DOM_0.05.tif'))
 
-        # helper.img_smooth(img_cv=img_landcover.landcover_np)
+        while True:
+            # seg_file = r'./test_images/S_ZmoNLdzo0FApj_jGiFJg_DOM_0.05.tif'   # pano_bearing_deg=225
+            # seg_file = r'./test_images/pzrQ0m1V_feSktSRq14H4g_DOM_0.05.tif'  # pano_bearing_deg=-35
+            # seg_file = r'./test_images/__yYxh-GNRaV5oj2q2ljNg_DOM_0.05.tif'  # pano_bearing_deg=90
+            try:
+                seg_file = random.choice(seg_files)
+                # basename = os.path.basename(seg_file)
+                json_data = json.load(open(seg_file.replace("_DOM_0.05.tif", '.json')))
+                pano_bearing_deg = json_data['Projection']['pano_yaw_deg']
+                pano_bearing_deg = float(pano_bearing_deg)
 
-        # plt.imshow(img_landcover.landcover_pil)
-        img_landcover.scan_width(pano_bearing_deg=225, target_ids=[10, 16, 24, 30, 35])
+                img_landcover = sm.Image_landcover(landcover_path=seg_file)
+
+                # helper.img_smooth(img_cv=img_landcover.landcover_np)
+
+                # plt.imshow(img_landcover.landcover_pil)
+                img_landcover.scan_width(pano_bearing_deg=pano_bearing_deg, target_ids=[5, 7, 9, 10, 11, 16, 24, 30, 35, 40, 45], interval_pix=5)
+                img_landcover.set_invalid_touch(touch_ids=[25, 28, 29, 31, 32, 33, 34, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 255])
+                img_landcover.set_valid_touch(touch_ids=[0, 1, 2, 3, 4, 6, 8, 12, 14, 21, 22, 23, 36, 37, 38, 39, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53])
+
+                img_landcover.scanlines_touch_validity(tolerance_pix=6)
+                # img_landcover.show_img(img_type='invalid_touch_np')
+                img_landcover.show_img(img_type='rotated_landcover_cv', multiply_factor=1, min_cover_ratio=0.9)
+                # img_landcover.show_img(img_type='rotated_landcover_np', multiply_factor=1, min_cover_ratio=0.5)
+                # img_landcover.show_img(img_type='rotated_landcover_np')
+                img_landcover.save_scanline(save_dir='./test_images')
+            except Exception as e:
+                print("Error in test_Image_landcover():", e, seg_file)
+                continue
 
         self.assertEqual(img_landcover.landcover_h, 800)
         self.assertEqual(img_landcover.landcover_w, 800)
+
+
 
 if __name__ == '__main__':
     unittest.main()
