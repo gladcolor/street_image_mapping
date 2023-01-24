@@ -21,7 +21,7 @@ import geopandas as gpd
 from shapely.geometry import Point, Polygon, mapping, LineString, MultiLineString
 import shapely
 import cv2
-
+import time
 import matplotlib.ticker as mtick
 from matplotlib.ticker import PercentFormatter
 
@@ -445,6 +445,33 @@ def measurements_to_shapefile(widths_files=[], saved_path=''):
             # logging.error(str(e), exc_info=True)
             continue
 
+def merge_shp(shp_dir, saved_file):
+    files = glob.glob(os.path.join(shp_dir, "*.shp"))
+    gdf_list = []
+    for idx, file in tqdm(enumerate(files)):
+        try:
+            gdf = gpd.read_file(file)
+            gdf_list.append(gdf)
+        except Exception as e:
+            print("Error: ", str(e), idx, file)
+            # logging.error(str(e), exc_info=True)
+            continue
+
+    print("Concatinng gdfs...")
+    start_time = time.perf_counter()
+    all_gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True))
+
+    print("Saving the shapefile...")
+
+    # all_gdf.to_file(saved_file, driver="GPKG")
+    all_gdf.to_file(saved_file)
+    end_time = time.perf_counter()
+
+
+    print(f"Finished. Spendt time: {end_time - start_time:.0f} seconds.")
+
+
 if __name__ == '__main__':
     # convert_labelme_to_YOLOv5_txt()
-    shape_add_XY()
+    # shape_add_XY()
+    merge_shp(shp_dir=r'E:\Research\street_image_mapping\DC_roads', saved_file=r'E:\Research\street_image_mapping\DC_roads.shp')

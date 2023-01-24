@@ -41,7 +41,8 @@ def test_Image_detection():
 
         img_detection = sm.Image_detection(detection_file=detection_file)
 
-        img_detection.compute_distance(bar_length_dict={0:0.9}, fov_h_deg=20)
+        # img_detection.compute_distance(bar_length_dict={0:0.9}, fov_h_deg=20)
+        img_detection.compute_distance(bar_length_dict={0:0.76}, fov_h_deg=20)  # category 0: stop-sign, height=0.76 meters
         basename = os.path.basename(detection_file)
         panoId = basename[:22]
         bearing_deg = basename.replace("fov=20.txt", '').split('_')[-1]
@@ -104,23 +105,70 @@ def add_offset_to_pano():
         df_list.append(detection_df)
     print("Started to merge...")
     df = pd.concat(df_list)
-    df.to_csv(r'E:\Research\street_image_mapping\detected_stop_sign.csv', index=False)
+    df.to_csv(r'E:\Research\street_image_mapping\detected_stop_sign_076.csv', index=False)
     # df = pd.read_csv(r'E:\Research\street_image_mapping\detected_stop_sign.csv')
     df = df.merge(gdf, left_on='panoId', right_on='panoId')
     df['sign_x'] = df['X'] + df['offset_x']
     df['sign_y'] = df['Y'] + df['offset_y']
     df['sign_z'] = df['elevatio_1'] + df['distance_z']
 
-    df.to_csv(r'E:\Research\street_image_mapping\measured_stop_sign.csv', index=False)
+    df.to_csv(r'E:\Research\street_image_mapping\measured_stop_sign_076.csv', index=False)
 
     # geometry = gpd.points_from_xy(df['sign_x'], df['sign_y'], df['sign_z'])
     gdf2 = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df['sign_x'], df['sign_y']))
-    gdf2.to_file(r'E:\Research\street_image_mapping\measured_stop_sign.shp')
+    gdf2.to_file(r'E:\Research\street_image_mapping\measured_stop_sign_076.shp')
     print("Done.")
+
+
+
+def scan_roads():
+    seg_dir = r'\\Desktop-h2oge6l\h\Research\sidewalk_wheelchair\DC_DOMs'
+    seg_files = glob.glob(os.path.join(seg_dir, '*_DOM_0.05.tif'))
+
+    total_cnt = len(seg_files)
+
+    save_dir = r'E:\Research\street_image_mapping\DC_roads'
+
+    while len(seg_files) > 0:
+        # seg_file = r'./test_images/S_ZmoNLdzo0FApj_jGiFJg_DOM_0.05.tif'   # pano_bearing_deg=225
+        # seg_file = r'./test_images/pzrQ0m1V_feSktSRq14H4g_DOM_0.05.tif'  # pano_bearing_deg=-35
+        # seg_file = r'./test_images/__yYxh-GNRaV5oj2q2ljNg_DOM_0.05.tif'  # pano_bearing_deg=90
+        processed_cnt = total_cnt - len(seg_files)
+
+        try:
+            seg_file = seg_files.pop(0)
+            # basename = os.path.basename(seg_file)
+            print(f"Processing {processed_cnt} / {total_cnt}...")
+            json_data = json.load(open(seg_file.replace("_DOM_0.05.tif", '.json')))
+            pano_bearing_deg = json_data['Projection']['pano_yaw_deg']
+            pano_bearing_deg = float(pano_bearing_deg)
+
+            img_landcover = sm.Image_landcover(landcover_path=seg_file)
+            # helper.img_smooth(img_cv=img_landcover.landcover_np)
+
+            # plt.imshow(img_landcover.landcover_pil)
+            img_landcover.scan_width(pano_bearing_deg=pano_bearing_deg,
+                                     target_ids=[5, 7, 9, 10, 11, 16, 24, 30, 35, 40, 45], interval_pix=5)
+            img_landcover.set_invalid_touch(
+                touch_ids=[25, 28, 29, 31, 32, 33, 34, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 255])
+            img_landcover.set_valid_touch(
+                touch_ids=[0, 1, 2, 3, 4, 6, 8, 12, 14, 21, 22, 23, 36, 37, 38, 39, 41, 42, 43, 44, 46, 47, 48, 49, 50,
+                           51, 52, 53])
+
+            img_landcover.scanlines_touch_validity(tolerance_pix=6)
+            # img_landcover.show_img(img_type='invalid_touch_np')
+            # img_landcover.show_img(img_type='rotated_landcover_cv', multiply_factor=1, min_cover_ratio=0.9)
+            # img_landcover.show_img(img_type='rotated_landcover_np', multiply_factor=1, min_cover_ratio=0.5)
+            # img_landcover.show_img(img_type='rotated_landcover_np')
+            img_landcover.save_scanline(save_dir=save_dir)
+        except Exception as e:
+            print("Error in test_Image_landcover():", e, seg_file)
+            continue
 
 if __name__ == "__main__":
     # get_DOM()
     # get_all_DOMs()
     # sampling_training_data()
     # test_Image_detection()
-    add_offset_to_pano()
+    # add_offset_to_pano()
+    scan_roads()

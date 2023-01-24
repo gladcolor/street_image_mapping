@@ -28,19 +28,7 @@ TARGET_IDS=[5, 7, 9, 10, 11, 16, 24, 30, 35, 40, 45]
 # Road surface classes:[5, 7, 9, 10, 11, 16, 24, 30, 35, 40, 45]
 # gsv_pano = GSV_pano(panoId='vwC_g5HdcA33hnUDprQ7ag', saved_path=r'.\test_images')
 
-class Detection_info:
-    def __init__(self):
-        self.img_path = ''
-        self.top_row = -1
-        self.bottom_row = -1
-        self.left_col = -1
-        self.right_col = -1
-        self.fov_h = -1
-        self.fov_v = -1
-        # self
-class test1(object):
-    def __init__(self, typein):
-        print("Test 1 ok.", typein)
+
 
 class Image_detection(object):
 
@@ -120,6 +108,21 @@ class Image_detection(object):
         # theta = atan(row / s)
         # phi = atan(col / r)
 
+    def is_edge(self, col, row, edge_threshold_pix=3):
+        # edge_threshold = 3  # pixel
+        is_touched = all_pair_list[int(idx / 2)][-1]
+        if col < edge_threshold_pix or col > (self.igm_w - edge_threshold_pix - 1):
+            is_touched = True
+
+        if row < edge_threshold_pix or row > (self.igm_h - edge_threshold_pix - 1):
+            is_touched = True
+
+        if end_x < edge_threshold_pix or end_x > (self.igm_w - edge_threshold_pix - 1):
+            is_touched = True
+
+        if end_y < edge_threshold_pix or end_y > (self.igm_h - edge_threshold_pix - 1):
+            is_touched = True
+
     def compute_phi_theta(self):
         fov_h_rad = math.radians(self.fov_h_deg)
 
@@ -186,11 +189,11 @@ def tacheometry_distance(bar_length, top_row, bottom_row, c_col, fov_h_deg, img_
 
     return distance #, x_offset, y_offset, sink_distance
 
-def get_offset(distance, pano_yaw_deg, phi_deg):
-    bearing_rad = math.radians(pano_yaw_deg + phi_deg)
-    y_offset = distance * math.cos(bearing_rad)
-    x_offset = distance * math.sin(bearing_rad)
-    return x_offset, y_offset
+# def get_offset(distance, pano_yaw_deg, phi_deg):
+#     bearing_rad = math.radians(pano_yaw_deg + phi_deg)
+#     y_offset = distance * math.cos(bearing_rad)
+#     x_offset = distance * math.sin(bearing_rad)
+#     return x_offset, y_offset
 
 
 
@@ -251,63 +254,6 @@ def yolo5_bbox_to_distance(bbox_dir, bar_length, fov_h_deg, label_idx):
 
     return distance
 
-class Bbox_mapping:
-
-    def __int__(self, bar_length, top_row, right_col, bottom_row, left_col, fov_h_deg, img_h, img_w):
-        self.bar_length = bar_length
-        self.top_row = top_row
-        self.bottom_row = bottom_row
-        self.right_col = right_col
-        self.left_col = left_col
-        self.c_col = (right_col + left_col) / 2
-        self.fov_h_deg = fov_h_deg
-        self.img_h = img_h
-        self.img_w = img_w
-
-        self.top_phi, self.top_theta = helper.castesian_to_shperical(self.c_col, self.top_row, self.fov_h_deg, self.img_h, self.img_w)
-        self.bottom_phi, self.bottom_theta = helper.castesian_to_shperical(self.c_col, self.bottom_row, self.fov_h_deg, self.img_h, self.img_w)
-        self.distance = self.bar_length * math.cos(self.top_theta) * math.cos(self.bottom_theta) / math.sin(self.top_theta - self.bottom_theta)
-
-        self.sink_distance = self.distance * math.tan(self.bottom_theta)
-
-    def get_offset(self, pano_yaw_deg):
-        self.bearing = (pano_yaw_deg + self.top_phi)
-        y_offset = self.distance * math.cos(self.bearing)
-        x_offset = self.distance * math.sin(self.bearing)
-
-        xyz_offset = (x_offset, y_offset, self.sink_distance)
-
-        return xyz_offset
-    # def distance(self):
-    #     '''
-    #
-    #     :param bar_length: unit:meter
-    #     :param top_row:
-    #     :param bottom_row:
-    #     :param c_col:
-    #     :param fov_h: unit: degree
-    #     :param img_h:
-    #     :param img_w:
-    #     :return:
-    #     '''
-    #     # distance = 0
-    #
-    #
-    #
-    #     # castesian_to_shperical(col, row, fov_h_deg, height, width)
-    #
-    #     return self.distance  # , x_offset, y_offset, sink_distance
-
-    # @staticmethod
-    # def map_width(DOM_img, heading_deg: float):
-    #
-    #     return
-
-class Image_segmentation(object):
-    def __init__(self, seg_path, ):
-
-
-        self.seg_path = seg_path
 
 class Image_landcover(object):
     def __init__(self, landcover_path, ):
@@ -423,15 +369,18 @@ class Image_landcover(object):
     def compute_scaned_lines_xy(self):
         tx = self.rotated_landcover_np.shape[0] / 2
         ty = self.rotated_landcover_np.shape[1] / 2
+
         end_points = np.zeros((len(self.scaned_lines) * 2, 2))
+
         # self.scaned_lines = row_in_rotated_img, new_run_cols, new_lengths
         end_points[:, 0] = np.append(self.scaned_lines[:, 1], self.scaned_lines[:, 1] + self.scaned_lines[:, 2])
         end_points[:, 1] = np.append(self.scaned_lines[:, 0], self.scaned_lines[:, 0])
+        end_points_transed = helper.points_2D_translation(end_points, tx, ty)
 
         tx = self.target_img_np.shape[0] / 2
         ty = self.target_img_np.shape[1] / 2
-        end_points_transed = helper.points_2D_translation(end_points, tx, ty)
-        end_points_rotated = helper.points_2D_rotated(end_points_transed, self.pano_bearing_deg)
+
+        end_points_rotated = helper.points_2D_rotated(end_points_transed, -self.pano_bearing_deg)
         end_points_transed = helper.points_2D_translation(end_points_rotated, -tx, ty)
 
         # read worldfile
@@ -568,7 +517,7 @@ class Image_landcover(object):
             print("Error in remove_long_scaned_lines():", e)
 
 
-    def save_scanline(self, save_dir='', file_name=''):
+    def save_scanline(self, save_dir='', file_name=''):  # , CRS="EPSG:4326"
 
         if (save_dir == '') and (file_name == '') and (self.landcover_path == ''):
             print("Error in Image_detection.save(): Need to set save_dir or file_name parameter.")
@@ -589,9 +538,9 @@ class Image_landcover(object):
         self.scaned_lines_df['cover_ratio'] = self.scaned_lines[:, 3]
         self.scaned_lines_df['touch_invalid'] = self.scaned_lines[:, 4]
         self.scaned_lines_df['touch_valid'] = self.scaned_lines[:, 5]
+        self.scaned_lines_df['file_name'] = basename.replace('.' + self.landcover_ext, "")
 
         self.scaned_lines_df.to_csv(file_name, index=False)
-
 
         helper.measurements_to_shapefile(widths_files=[file_name], saved_path=save_dir)
 
