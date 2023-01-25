@@ -20,8 +20,7 @@ URLs = [r"https://raw.githubusercontent.com/gladcolor/StreetView/master/gsv_pano
 #     response = requests.get(URL)
 #     basename = os.path.basename(URL)
 #     open(basename, "wb").write(response.content)
-
-from pano import GSV_pano
+# from pano import GSV_pano
 
 TARGET_IDS=[5, 7, 9, 10, 11, 16, 24, 30, 35, 40, 45]
 # [0, 1, 2, 3, 4, 6, 8, 12, 14, 21, 22, 23, 36, 37, 38, 39, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53]
@@ -157,9 +156,9 @@ class Image_detection(object):
             self.compute_distance()
 
         # self.detection_df['bearing'] = self.detection_df['phi'] + math.radians(pano_yaw_deg)
-        self.detection_df['bearing'] = math.radians(bearing_deg)
-        self.detection_df['offset_x'] =  np.sin(self.detection_df['bearing']) * self.detection_df['distance']
-        self.detection_df['offset_y'] =  np.cos(self.detection_df['bearing']) * self.detection_df['distance']
+        self.detection_df['bearing_rad'] = math.radians(bearing_deg)
+        self.detection_df['offset_x'] =  np.sin(self.detection_df['bearing_rad']) * self.detection_df['distance']
+        self.detection_df['offset_y'] =  np.cos(self.detection_df['bearing_rad']) * self.detection_df['distance']
 
 
 def tacheometry_distance(bar_length, top_row, bottom_row, c_col, fov_h_deg, img_h, img_w):
