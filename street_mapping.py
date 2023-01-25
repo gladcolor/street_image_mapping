@@ -525,7 +525,7 @@ class Image_landcover(object):
         if (file_name == '') and (save_dir != ''):
             os.makedirs(save_dir, exist_ok=True)
             basename = os.path.basename(self.landcover_path)
-            file_name = os.path.join(save_dir, basename.replace(self.landcover_ext, '.csv'))
+            file_name = os.path.join(save_dir, basename.replace(self.landcover_ext, 'csv'))
 
         else:
             if os.path.exists(self.landcover_path):
@@ -536,9 +536,15 @@ class Image_landcover(object):
         self.scaned_lines_df = pd.DataFrame(self.scaned_lines_xy)
         self.scaned_lines_df.columns = ['start_x', 'start_y', 'end_x', 'end_y']
         self.scaned_lines_df['cover_ratio'] = self.scaned_lines[:, 3]
+
         self.scaned_lines_df['touch_invalid'] = self.scaned_lines[:, 4]
         self.scaned_lines_df['touch_valid'] = self.scaned_lines[:, 5]
+        self.scaned_lines_df['length'] = self.scaned_lines[:, 2] * self.resolution
         self.scaned_lines_df['file_name'] = basename.replace('.' + self.landcover_ext, "")
+
+        self.scaned_lines_df = self.scaned_lines_df.round(3)
+        self.scaned_lines_df['touch_invalid'] = self.scaned_lines_df['touch_invalid'].astype(int)
+        self.scaned_lines_df['touch_valid'] = self.scaned_lines_df['touch_valid'].astype(int)
 
         self.scaned_lines_df.to_csv(file_name, index=False)
 

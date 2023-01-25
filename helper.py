@@ -16,6 +16,7 @@ from math import *
 from scipy.stats import norm
 from sklearn.metrics import r2_score
 import json
+import multiprocessing as mp
 
 import geopandas as gpd
 from shapely.geometry import Point, Polygon, mapping, LineString, MultiLineString
@@ -24,6 +25,9 @@ import cv2
 import time
 import matplotlib.ticker as mtick
 from matplotlib.ticker import PercentFormatter
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def list_to_file(a_list, file_name):
     with open(file_name, mode='w', encoding='utf-8') as myfile:
@@ -445,21 +449,31 @@ def measurements_to_shapefile(widths_files=[], saved_path=''):
             # logging.error(str(e), exc_info=True)
             continue
 
-def merge_shp(shp_dir, saved_file):
+def merge_shp_mp(shp_dir, saved_file):
     files = glob.glob(os.path.join(shp_dir, "*.shp"))
-    gdf_list = []
-    for idx, file in tqdm(enumerate(files)):
-        try:
-            gdf = gpd.read_file(file)
-            gdf_list.append(gdf)
-        except Exception as e:
-            print("Error: ", str(e), idx, file)
-            # logging.error(str(e), exc_info=True)
-            continue
+    files_mp = mp.Manager().list()
+
+    print("Found files:", len(files))
+
+    for f in files:
+        files_mp.append(f)
+
+    gdf_list = mp.Manager().list()
+
+    process_cnt = 10
+    pool = mp.Pool(processes=process_cnt)
+
+    for i in range(process_cnt):
+        pool.apply_async(merge_shp_sp, (files_mp, gdf_list))
+    pool.close()
+    pool.join()
 
     print("Concatinng gdfs...")
     start_time = time.perf_counter()
     all_gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True))
+
+    all_gdf = all_gdf.set_crs("EPSG:6487")
+    all_gdf['length'] = all_gdf['geometry'].length
 
     print("Saving the shapefile...")
 
@@ -467,11 +481,28 @@ def merge_shp(shp_dir, saved_file):
     all_gdf.to_file(saved_file)
     end_time = time.perf_counter()
 
+    print(f"Finished. Spent time: {end_time - start_time:.0f} seconds.")
 
-    print(f"Finished. Spendt time: {end_time - start_time:.0f} seconds.")
+def merge_shp_sp(shp_list, gdf_list):
+    total_cnt = len(shp_list)
+    while len(shp_list) > 0:
+        file = shp_list.pop()
+        processed_cnt = total_cnt - len(shp_list)
+    # for idx, file in tqdm(enumerate(shp_list)):
+        try:
+            gdf = gpd.read_file(file)
+            gdf_list.append(gdf)
+
+            if processed_cnt % 1000 == 0:
+                print(f"Processed {processed_cnt} / {total_cnt}")
+        except Exception as e:
+            print("Error: ", str(e), file)
+            # logging.error(str(e), exc_info=True)
+            continue
+
 
 
 if __name__ == '__main__':
     # convert_labelme_to_YOLOv5_txt()
     # shape_add_XY()
-    merge_shp(shp_dir=r'E:\Research\street_image_mapping\DC_roads', saved_file=r'E:\Research\street_image_mapping\DC_roads.shp')
+    merge_shp_mp(shp_dir=r'E:\Research\street_image_mapping\DC_roads', saved_file=r'E:\Research\street_image_mapping\DC_roads2.shp')
