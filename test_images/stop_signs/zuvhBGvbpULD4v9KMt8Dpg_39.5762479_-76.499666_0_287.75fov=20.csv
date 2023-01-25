@@ -1,0 +1,2 @@
+class,x_center,y_center,width_ratio,height_ratio,confidence,img_w,img_h,top_row,bottom_row,left_col,right_col,c_col,fov_h_deg,bar_length,phi,top_theta,bottom_theta,distance,distance_z,bearing,offset_x,offset_y,panoId
+0,0.65918,0.314453,0.119141,0.167969,0.975522,1024,768,176.99980799999997,306.0,614.000128,736.000512,675.00032,20,0.76,0.056076604323005756,0.07116811632632408,0.026855855125713545,17.107022458149846,0.45953419976305127,5.022184922613683,-16.292656333545143,5.215320410160293,zuvhBGvbpULD4v9KMt8Dpg
