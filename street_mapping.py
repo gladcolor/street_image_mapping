@@ -107,20 +107,7 @@ class Image_detection(object):
         # theta = atan(row / s)
         # phi = atan(col / r)
 
-    def is_edge(self, col, row, edge_threshold_pix=3):
-        # edge_threshold = 3  # pixel
-        is_touched = all_pair_list[int(idx / 2)][-1]
-        if col < edge_threshold_pix or col > (self.igm_w - edge_threshold_pix - 1):
-            is_touched = True
 
-        if row < edge_threshold_pix or row > (self.igm_h - edge_threshold_pix - 1):
-            is_touched = True
-
-        if end_x < edge_threshold_pix or end_x > (self.igm_w - edge_threshold_pix - 1):
-            is_touched = True
-
-        if end_y < edge_threshold_pix or end_y > (self.igm_h - edge_threshold_pix - 1):
-            is_touched = True
 
     def compute_phi_theta(self):
         fov_h_rad = math.radians(self.fov_h_deg)
