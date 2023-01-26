@@ -27,10 +27,11 @@ $$h_b=tanθ_b·d_{hor}    \qquad{      (2)}$$
 
 Figure 1. Image-based tacheometric surveying
 
-
+The land cover map in Figure 2a, converted from the panorama in Figure 2b, shows the idea of measuring road widths on the land cover maps (Ning et al., 2022). Other ribbon objects, such as sidewalks or parking strips, can use a similar method. First, a Cartesian coordinate system for each land cover map was established with the $y-axis$ towards the vehicle direction, and then scanlines were generated perpendicularly to the street centerline along with the $y-axis$ (Figure 2a). The interval of scanlines was set to a relatively small value (e.g., 0.25 m) to capture the minor changes in width. We denote the intersection of the scanline and the road surface area as slice. Scanlines usually intersect with the road perpendicularly; thus, the length of a slice is a width measurement of a road segment. The complex urban environment may cause many invalid slices, so we developed a set of algorithms to remove them, for instance, those touching the vehicles (e.g., $l_1$ in Figure 2a) or extending to another road segment (e.g., $l_2$). Only valid slices like $l_3$ are kept.
 
 ![img_2.png](doc_images/img_1.2.png)
 
+Figure 2. Road width measurement in a land cover map (a) converted from a panorama (b). The slice $l_1$ touches vehicles while $l_2$ extends to another road segment; both are invalid width measurements and will be ignored. Only $l_3$ will be kept in this example. 
 
 # Case study results
 
@@ -40,9 +41,9 @@ In the study area of Maryland, US, the framework obtained 20,488 measurements fo
 
 ![img_2.png](doc_images/img_2.png)
 
-Road width measurement in a land cover map (a) converted from a panorama (b). The slice $l_1$ touches vehicles while $l_2$ extends to another road segment; both are invalid width measurements and will be ignored. Only $l_3$ will be kept in this example. 
 
-Figure 2. Stop sign localization result examples
+
+Figure 3. Stop sign localization result examples
 
 ## Road width measurement
 
@@ -50,7 +51,7 @@ In the study area of Washingto D.C., the framework generated 35.3 million measur
 
 ![img_3.png](doc_images/img_3.png)
 
-Figure 3. Road width measurement examples
+Figure 4. Road width measurement examples
 
 # Notes
 [GeoPandas](https://geopandas.org/en/stable/) is required for SIM. If you use Windows and have difficulty to install `GeoPandas`, please refer to [this post](https://geoffboeing.com/2014/09/using-geopandas-windows/). Or using the following `conda` command to install:
