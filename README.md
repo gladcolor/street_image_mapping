@@ -1,5 +1,7 @@
 # street_image_mapping
 
+Still being developed, please wait!
+
 Street Image Mapping (SIM) is a universal framework providing toolkit for localizing and measuring objects in street view images (SVI). SIM can automatically measure the street objects' 3D coordinates or size with appropriate parameters or auxiliary data. The current version of SIM provides two pipelines:
 1) [tacheometric surveying](https://en.wikipedia.org/wiki/Tacheometry), i.e., localizing objects which have a known height or width (e.g., stop-sign).
 2) width measuring for ribbon objects (e.g., road). 
