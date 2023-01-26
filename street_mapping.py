@@ -348,8 +348,23 @@ class Image_landcover(object):
         self.calculate_cover_ratio()
 
         self.scaned_lines_xy = self.compute_scaned_lines_xy()
+        self.create_result_df()
 
 
+    def create_result_df(self):
+        self.scaned_lines_df = pd.DataFrame(self.scaned_lines_xy)
+        self.scaned_lines_df.columns = ['start_x', 'start_y', 'end_x', 'end_y']
+        self.scaned_lines_df['cover_ratio'] = self.scaned_lines[:, 3]
+
+        self.scaned_lines_df['touch_invalid'] = self.scaned_lines[:, 4]
+        self.scaned_lines_df['touch_valid'] = self.scaned_lines[:, 5]
+        self.scaned_lines_df['length'] = self.scaned_lines[:, 2] * self.resolution
+        basename = os.path.basename(self.landcover_path)
+        self.scaned_lines_df['file_name'] = basename.replace('.' + self.landcover_ext, "")
+
+        self.scaned_lines_df = self.scaned_lines_df.round(3)
+        self.scaned_lines_df['touch_invalid'] = self.scaned_lines_df['touch_invalid'].astype(int)
+        self.scaned_lines_df['touch_valid'] = self.scaned_lines_df['touch_valid'].astype(int)
         # find contour
         # raw_contours, hierarchy = cv2.findContours(img_rotated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     def compute_scaned_lines_xy(self):
@@ -518,19 +533,6 @@ class Image_landcover(object):
                 file_name = self.landcover_path.replace(self.landcover_ext, 'csv')
                 save_dir = os.path.dirname(self.landcover_path)
 
-
-        self.scaned_lines_df = pd.DataFrame(self.scaned_lines_xy)
-        self.scaned_lines_df.columns = ['start_x', 'start_y', 'end_x', 'end_y']
-        self.scaned_lines_df['cover_ratio'] = self.scaned_lines[:, 3]
-
-        self.scaned_lines_df['touch_invalid'] = self.scaned_lines[:, 4]
-        self.scaned_lines_df['touch_valid'] = self.scaned_lines[:, 5]
-        self.scaned_lines_df['length'] = self.scaned_lines[:, 2] * self.resolution
-        self.scaned_lines_df['file_name'] = basename.replace('.' + self.landcover_ext, "")
-
-        self.scaned_lines_df = self.scaned_lines_df.round(3)
-        self.scaned_lines_df['touch_invalid'] = self.scaned_lines_df['touch_invalid'].astype(int)
-        self.scaned_lines_df['touch_valid'] = self.scaned_lines_df['touch_valid'].astype(int)
 
         self.scaned_lines_df.to_csv(file_name, index=False)
 
