@@ -105,6 +105,7 @@ class Street_mapping_test(unittest.TestCase):
 
                 img_landcover.scanlines_touch_validity(tolerance_pix=6)
                 # img_landcover.show_img(img_type='invalid_touch_np')
+                # img_landcover.create_result_df()
                 img_landcover.show_img(img_type='rotated_landcover_cv', multiply_factor=1, min_cover_ratio=0.9)
                 # img_landcover.show_img(img_type='rotated_landcover_np', multiply_factor=1, min_cover_ratio=0.5)
                 # img_landcover.show_img(img_type='rotated_landcover_np')

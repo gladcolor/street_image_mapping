@@ -264,6 +264,8 @@ class Image_landcover(object):
         self.scaned_lines = None
         self.landcover_ext = landcover_path.split('.')[-1]
 
+        self.scaned_lines_df = None
+
         ''' self.scaned_lines: a numpy array
         row: scan lines
         col0: row number
@@ -348,23 +350,24 @@ class Image_landcover(object):
         self.calculate_cover_ratio()
 
         self.scaned_lines_xy = self.compute_scaned_lines_xy()
-        self.create_result_df()
+
+        self.create_scaned_lines_df()
 
 
-    def create_result_df(self):
+
+    def create_scaned_lines_df(self):
+
+        # if not self.scaned_lines_df:
         self.scaned_lines_df = pd.DataFrame(self.scaned_lines_xy)
         self.scaned_lines_df.columns = ['start_x', 'start_y', 'end_x', 'end_y']
         self.scaned_lines_df['cover_ratio'] = self.scaned_lines[:, 3]
-
-        self.scaned_lines_df['touch_invalid'] = self.scaned_lines[:, 4]
-        self.scaned_lines_df['touch_valid'] = self.scaned_lines[:, 5]
         self.scaned_lines_df['length'] = self.scaned_lines[:, 2] * self.resolution
         basename = os.path.basename(self.landcover_path)
         self.scaned_lines_df['file_name'] = basename.replace('.' + self.landcover_ext, "")
-
         self.scaned_lines_df = self.scaned_lines_df.round(3)
-        self.scaned_lines_df['touch_invalid'] = self.scaned_lines_df['touch_invalid'].astype(int)
-        self.scaned_lines_df['touch_valid'] = self.scaned_lines_df['touch_valid'].astype(int)
+
+        # self.scaned_lines_df['touch_invalid'] = self.scaned_lines_df['touch_invalid'].astype(int)
+        # self.scaned_lines_df['touch_valid'] = self.scaned_lines_df['touch_valid'].astype(int)
         # find contour
         # raw_contours, hierarchy = cv2.findContours(img_rotated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     def compute_scaned_lines_xy(self):
@@ -469,12 +472,17 @@ class Image_landcover(object):
 
         self.invalid_touch_np = self.invalid_touch_np.astype(np.int8)
 
+
+
+
     def set_valid_touch(self, touch_ids):
         self.valid_touch_np = np.zeros(self.rotated_landcover_np.shape)
         for class_ in touch_ids:
             self.valid_touch_np = np.logical_or(self.valid_touch_np, self.rotated_landcover_np == class_)
 
         self.valid_touch_np = self.valid_touch_np.astype(np.int8)
+
+
     def scanlines_touch_validity(self, tolerance_pix=6):
         '''
         wether the scaneline ends tough the occluded or valid object.
@@ -502,9 +510,14 @@ class Image_landcover(object):
 
         is_touched_list = np.array(is_touch_invalid_list).reshape((-1, 1))
         self.scaned_lines = np.append(self.scaned_lines, is_touched_list, axis=1)
+        self.scaned_lines_df['touch_invalid'] = is_touched_list
+        self.scaned_lines_df['touch_invalid'] = self.scaned_lines_df['touch_invalid'].astype(int)
 
         is_touched_list = np.array(is_touch_valid_list).reshape((-1, 1))
         self.scaned_lines = np.append(self.scaned_lines, is_touched_list, axis=1)
+        self.scaned_lines_df['touch_valid'] = is_touched_list
+        self.scaned_lines_df['touch_valid'] = self.scaned_lines_df['touch_valid'].astype(int)
+
 
     def remove_long_scaned_lines(self, max_length_pix=-1):  # not finished
         try:
