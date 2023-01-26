@@ -26,6 +26,25 @@ $$h_b=tanθ_b·d_{hor}    \qquad{      (2)}$$
 ![img_2.png](doc_images/img_2.png)
 
 Figure 1. Image-based tacheometric surveying
+
+# Case study results
+
+## Stop sign localization
+
+In the study area of Maryland, US, the framework obtained 20,488 measurements for 10,423 (61.7%) stop-signs; compared with the collected dataset, the horizontal RMSE (root-mean-square error) is 2.54 m, the mean error is 1.96 m, and the median error is 1.49 m. For most detected stop-signs (65.9%), they were located close to the actual places within 2 m.
+
+![img_2.png](img_2.png)
+
+Figure 2. Stop sign localization result examples
+
+## Road width measurement
+
+In the study area of Washingto D.C., the framework generated 35.3 million measurements and 8.0 million of them were valid. To assess their accuracy, we randomly and evenly selected 293 measurements, manually measured their associated actual road width, and then computed the error. The average actual width of the 293 roads is 9.76 m. The RMSE is 1.48 m (or 18.5% in related error), the mean error is 0.85 m (10.0%), and the median is 0.56 m (6.4%). 
+
+![img_3.png](img_3.png)
+
+Figure 3. Road width measurement examples
+
 # Notes
 [GeoPandas](https://geopandas.org/en/stable/) is required for SIM. If you use Windows and have difficulty to install `GeoPandas`, please refer to [this post](https://geoffboeing.com/2014/09/using-geopandas-windows/). Or using the following `conda` command to install:
 
