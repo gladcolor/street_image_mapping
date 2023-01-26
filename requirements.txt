@@ -14,3 +14,4 @@ beautifulsoup4
 pandas
 geopandas
 tqdm
+rasterio
