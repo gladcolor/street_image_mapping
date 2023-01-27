@@ -3,6 +3,8 @@ import glob
 import os
 
 from PIL import Image
+import matplotlib.pyplot as plt
+import matplotlib as mpt
 import PIL
 import numpy as np
 import helper
@@ -353,6 +355,15 @@ class Image_landcover(object):
 
         self.create_scaned_lines_df()
 
+    def draw_img(self, ax):
+        ax.set_xlim(self.extent['x_min'], self.extent['x_max'])
+        ax.set_ylim(self.extent['y_min'], self.extent['y_max'])
+
+        imgplot = ax.imshow(self.landcover_pil)
+        transform = mpt.transforms.Affine2D(self.transform_matrix)
+        imgplot.set_transform(transform + ax.transData)
+
+        return ax
 
 
     def create_scaned_lines_df(self):
@@ -390,7 +401,12 @@ class Image_landcover(object):
         # read worldfile
         worldfile_ext = self.landcover_path[-3] + self.landcover_path[-1] + 'w'
         worldfile_path = self.landcover_path[:-3] + worldfile_ext
-        self.resolution, self.UL_x, self.UL_y = helper.read_worldfile(worldfile_path)
+        lines, matrix = helper.read_worldfile(worldfile_path)
+        self.resolution = lines[0]
+        self.UL_x = lines[4]
+        self.UL_y = lines[5]
+        self.transform_matrix = matrix
+        self.find_extent()
 
         x = end_points_transed[:, 0] * self.resolution + self.UL_x
         y = self.UL_y - end_points_transed[:, 1] * self.resolution
@@ -472,8 +488,12 @@ class Image_landcover(object):
 
         self.invalid_touch_np = self.invalid_touch_np.astype(np.int8)
 
-
-
+    def find_extent(self):
+        self.extent = {}
+        self.extent['x_min'] = self.UL_x
+        self.extent['x_max'] = self.UL_x + self.resolution * self.landcover_w
+        self.extent['y_min'] = self.UL_y - self.resolution * self.landcover_h
+        self.extent['y_max'] = self.UL_y
 
     def set_valid_touch(self, touch_ids):
         self.valid_touch_np = np.zeros(self.rotated_landcover_np.shape)

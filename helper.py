@@ -402,18 +402,22 @@ def points_2D_translation(points, tx, ty):
     return results[:, 0:2]
 
 def read_worldfile(file_path):
+    '''
+    read the world file
+    '''
     try:
         f = open(file_path, "r")
         lines = f.readlines()
         f.close()
-        lines = [line[:-1] for line in lines]
-        resolution = float(lines[0])
-        upper_left_x = float(lines[4])
-        upper_left_y = float(lines[5])
-        return resolution, upper_left_x, upper_left_y
+        lines = [float(n) for n in lines]
+        # resolution = float(lines[0])
+        # upper_left_x = float(lines[4])
+        # upper_left_y = float(lines[5])
+        matrix = np.array([[lines[0], lines[2], lines[4]], [lines[1], lines[3], lines[5]], [0, 0, 1]])
+        return lines, matrix
     except Exception as e:
-        print("Error in read_worldfile(), return Nones:", e)
-        return None, None, None
+        print("Error in read_worldfile(), return Nones", e)
+        return []
 
 def get_line(row):
     p = Point(row['start_x'], row['start_y'])
