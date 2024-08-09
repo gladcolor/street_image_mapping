@@ -481,8 +481,8 @@ def merge_shp_mp(shp_dir, saved_file):
 
     print("Saving the shapefile...")
 
-    # all_gdf.to_file(saved_file, driver="GPKG")
-    all_gdf.to_file(saved_file)
+    all_gdf.to_file(saved_file, driver="GPKG")
+    # all_gdf.to_file(saved_file)
     end_time = time.perf_counter()
 
     print(f"Finished. Spent time: {end_time - start_time:.0f} seconds.")
@@ -509,4 +509,5 @@ def merge_shp_sp(shp_list, gdf_list):
 if __name__ == '__main__':
     # convert_labelme_to_YOLOv5_txt()
     # shape_add_XY()
-    merge_shp_mp(shp_dir=r'E:\Research\street_image_mapping\DC_roads', saved_file=r'E:\Research\street_image_mapping\DC_roads2.shp')
+    # merge_shp_mp(shp_dir=r'E:\Research\street_image_mapping\DC_roads', saved_file=r'E:\Research\street_image_mapping\DC_roads2.shp')
+    merge_shp_mp(shp_dir=r'D:\Research\street_image_mapping\Road_ground_truth_split', saved_file=r'D:\Research\street_image_mapping\Road_ground_truth_width.shp')

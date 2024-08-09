@@ -57,3 +57,8 @@ Figure 4. Road width measurement examples
 [GeoPandas](https://geopandas.org/en/stable/) is required for SIM. If you use Windows and have difficulty to install `GeoPandas`, please refer to [this post](https://geoffboeing.com/2014/09/using-geopandas-windows/). Or using the following `conda` command to install:
 
 `conda create -n geo --strict-channel-priority geopandas`
+
+# Ongoing features
+- Triangulation. We are developing triangulating features to this toolkit. This feature can measure the tree diameter for street tree inventory, as well as the tree growing monitors. 
+![tree_diameter](doc_images/1qTopLEo4k5euVrLowCI_w_218__dSD7M9ggy25Y8ocd3bOVw_173_detailed_measurement.png)
+An example of tree diameter measurement using street view images. 

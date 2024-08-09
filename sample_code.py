@@ -15,8 +15,10 @@ import geopandas as gpd
 
 import multiprocessing as mp
 
+# import warnings
+# warnings.simplefilter(action='ignore', category=FutureWarning)
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 TARTGET_IDX = [5, 7, 9, 10, 11, 16, 24, 30, 35, 40, 45]
 INVALID_IDX = [25, 28, 29, 31, 32, 33, 34, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 255]
@@ -125,10 +127,14 @@ def add_offset_to_pano():
     print("Done.")
 
 def scan_roads_mp():
-    seg_dir = r'\\Desktop-h2oge6l\h\Research\sidewalk_wheelchair\DC_DOMs'
+    # seg_dir = r'\\Desktop-h2oge6l\h\Research\sidewalk_wheelchair\DC_DOMs'
+    seg_dir = r'D:\Research\street_image_mapping\Road_ground_truth_split'
+
     # save_dir = r'E:\Research\street_image_mapping\DC_roads'
-    save_dir = r'D:\Research\street_image_mapping\DC_roads'
-    seg_files = glob.glob(os.path.join(seg_dir, '*_DOM_0.05.tif'))
+    # save_dir = r'D:\Research\street_image_mapping\Road_ground_truth_split'
+    save_dir = seg_dir
+    json_dir = r'\\Desktop-h2oge6l\h\Research\sidewalk_wheelchair\DC_DOMs'
+    seg_files = glob.glob(os.path.join(seg_dir, '*.tif'))
 
     seg_files_mp = mp.Manager().list()
     for f in seg_files:
@@ -140,15 +146,17 @@ def scan_roads_mp():
 
     pool = mp.Pool(processes=process_cnt)
     for i in range(process_cnt):
-        pool.apply_async(scan_roads, (seg_files_mp, save_dir))
+        pool.apply_async(scan_roads, (seg_files_mp, save_dir, json_dir))
     pool.close()
     pool.join()
 
     print("Done.")
 
 
-def scan_roads(seg_files, save_dir):
+def scan_roads(seg_files, save_dir, json_dir=None):
     total_cnt = len(seg_files)
+    if json_dir is None:
+        json_dir = os.path.dirname(seg_files[0])
     while len(seg_files) > 0:
         # seg_file = r'./test_images/S_ZmoNLdzo0FApj_jGiFJg_DOM_0.05.tif'   # pano_bearing_deg=225
         # seg_file = r'./test_images/pzrQ0m1V_feSktSRq14H4g_DOM_0.05.tif'  # pano_bearing_deg=-35
@@ -159,8 +167,11 @@ def scan_roads(seg_files, save_dir):
             seg_file = seg_files.pop(0)
             # basename = os.path.basename(seg_file)
             if processed_cnt % 1000 == 0:
-                print(f"Processing {processed_cnt} / {total_cnt}...")
-            json_data = json.load(open(seg_file.replace("_DOM_0.05.tif", '.json')))
+                print(f"Processing {processed_cnt} / {total_cnt}...", seg_file)
+            # json_data = json.load(open(seg_file.replace("_DOM_0.05.tif", '.json')))
+            basename = os.path.basename(seg_file)
+            json_path = os.path.join(json_dir, basename.replace(".tif", '.json'))
+            json_data = json.load(open(json_path))
             pano_bearing_deg = json_data['Projection']['pano_yaw_deg']
             pano_bearing_deg = float(pano_bearing_deg)
 
