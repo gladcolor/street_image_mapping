@@ -289,7 +289,7 @@ class Image_landcover(object):
 
         for class_ in target_ids:
             self.target_img_np = np.logical_or(self.target_img_np, self.landcover_np == class_)
-        self.smoothed_target = helper.img_smooth(self.target_img_np, open_kerel=(25, 25), close_kernel_close=(15, 15))
+        self.smoothed_target = helper.img_smooth(self.target_img_np, open_kerel=morph_kernel_open, close_kernel_close=morph_kernel_close)
 
 
 
@@ -298,7 +298,10 @@ class Image_landcover(object):
         self.rotated_landcover_np = helper.cv_img_rotate_bound(self.landcover_np, -pano_bearing_deg)
 
 
-        opened_color = cv2.merge((self.rotated_target, self.rotated_target, self.rotated_target))
+        # opened_color = cv2.merge((self.rotated_target, self.rotated_target, self.rotated_target))
+
+        # cv2.imshow('rotated_landcover_cv', self.rotated_target * 100)
+        # cv2.waitKey(0)
 
         img_roatated_h = self.rotated_target.shape[0]
         line_y_list = range(interval_pix, img_roatated_h, interval_pix)
