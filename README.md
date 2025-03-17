@@ -13,6 +13,8 @@ Below is a notebook to show how to use this framework.
 
 
 <a href="https://colab.research.google.com/drive/1sS1HmovMwxjax_0e8uqZm3Xtk-Xd-pef?usp=sharing" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open in Colab"/></a>
+
+Feel free to contact me for any issues since this project is complicated.
  
 Figure 1 explains how the framework conducts tachometry. Panoramas are widely used in SVI services and are stored in equirectangular projection; each pixel's position (e.g., column and row number) represent its orientation. Thus, the street object's altitude angle and azimuth angle originating from the camera can be converted from its column and row number in the panorama. If the object’s distance from the panorama is known, its location can be computed. Our framework implemented the tacheometric method proposed by [Ning et al., (2021)](https://www.tandfonline.com/doi/abs/10.1080/13658816.2021.1981334) to obtain the object distance. 
 
