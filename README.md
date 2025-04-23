@@ -63,4 +63,11 @@ Figure 4. Road width measurement examples
 # Ongoing features
 - Triangulation. We are developing triangulating features to this toolkit. This feature can measure the tree diameter for street tree inventory, as well as the tree growing monitors. 
 ![tree_diameter](doc_images/1qTopLEo4k5euVrLowCI_w_218__dSD7M9ggy25Y8ocd3bOVw_173_detailed_measurement.png)
-An example of tree diameter measurement using street view images. 
+An example of tree diameter measurement using street view images.
+
+
+# These mapping and measuring pipelines are built upon this street view image operating library: 
+https://github.com/gladcolor/StreetView/tree/master?tab=readme-ov-file
+
+Please feel free to contact me if you have any questions!
+
